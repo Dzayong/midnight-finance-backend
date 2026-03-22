@@ -5,221 +5,197 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\FinancialAccount;
+use App\Models\Category;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
-use Carbon\Carbon;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
-use App\Models\FinancialAccount; // Sesuaikan jika nama model Abang beda
-use App\Models\Category;         // Sesuaikan jika nama model Abang beda
+use Illuminate\Support\Str;
+use Carbon\Carbon;
+use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
 {
-    // 1. REGISTRASI & KIRIM OTP
+    // 💡 HELPER: Cek Cooldown OTP (3 Menit mutlak, kebal bug zona waktu)
+    private function checkCooldown($user)
+    {
+        if ($user && $user->otp_code && $user->updated_at) {
+            $secondsPassed = now()->diffInSeconds($user->updated_at);
+            if ($secondsPassed < 180) {
+                $wait = ceil((180 - $secondsPassed) / 60);
+                return "Tunggu {$wait} menit lagi sebelum meminta kode verifikasi baru.";
+            }
+        }
+        return false;
+    }
+
     public function register(Request $request)
     {
-        $validated = $request->validate([
+        $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
+            'email' => 'required|email',
+            'password' => ['required', 'confirmed', Password::min(8)->letters()->mixedCase()->numbers()->symbols()->uncompromised()],
         ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if ($user && $user->status === 'active') {
+            return response()->json(['message' => 'Alamat email sudah terdaftar. Silakan masuk ke akun Anda.'], 400);
+        }
+
+        if ($cooldownMsg = $this->checkCooldown($user)) {
+            return response()->json(['message' => $cooldownMsg], 429);
+        }
 
         $otp = rand(100000, 999999);
 
-        // Status awal: INACTIVE
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-            'status' => 'inactive',
-            'otp_code' => $otp,
-            'otp_expires_at' => Carbon::now()->addMinutes(10)
-        ]);
+        $user = User::updateOrCreate(
+            ['email' => $request->email],
+            [
+                'name' => $request->name,
+                'password' => Hash::make($request->password),
+                'status' => 'inactive',
+                'otp_code' => (string) $otp,
+                'otp_expires_at' => now()->addMinutes(10)
+            ]
+        );
 
-        Mail::raw("Halo {$user->name}! Kode OTP Anda adalah: {$otp}. Kode ini akan hangus dalam 10 menit.", function ($message) use ($user) {
-            $message->to($user->email)->subject('Kode Verifikasi Midnight Finance');
+        Mail::send('emails.otp', ['otp' => $otp, 'user' => $user], function ($msg) use ($user) {
+            $msg->to($user->email)->subject('Kode Verifikasi Keamanan - Midnight Finance');
         });
 
-        return response()->json([
-            'message' => 'Registrasi berhasil. Silakan cek email/log untuk kode OTP.',
-            'email' => $user->email
-        ], 201);
+        return response()->json(['message' => 'Registrasi berhasil. Sistem sedang mengirimkan kode verifikasi ke email Anda.'], 201);
     }
 
-    // 2. VERIFIKASI OTP
     public function verifyOtp(Request $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'otp_code' => 'required|string'
-        ]);
-
+        $request->validate(['email' => 'required|email', 'otp_code' => 'required']);
         $user = User::where('email', $request->email)->first();
 
-        if (!$user || $user->otp_code !== $request->otp_code) {
-            return response()->json(['message' => 'Kode OTP salah atau email tidak ditemukan.'], 401);
+        if (!$user) {
+            return response()->json(['message' => 'Alamat email tidak ditemukan dalam sistem.'], 404);
         }
 
-        if (Carbon::now()->greaterThan($user->otp_expires_at)) {
-            return response()->json(['message' => 'Kode OTP sudah kadaluarsa. Silakan request ulang.'], 401);
+        if ($user->otp_code !== (string) $request->otp_code) {
+            return response()->json(['message' => 'Kode verifikasi yang Anda masukkan tidak valid.'], 401);
         }
 
-        // Hapus OTP, tapi biarkan status INACTIVE (agar masuk halaman Setup)
-        $user->update([
-            'otp_code' => null,
-            'otp_expires_at' => null
-        ]);
+        if (now()->greaterThan(Carbon::parse($user->otp_expires_at))) {
+            return response()->json(['message' => 'Kode verifikasi telah usang. Silakan minta kode baru.', 'expired' => true], 401);
+        }
 
-        return response()->json(['message' => 'Akun berhasil diverifikasi! Silakan login.']);
+        $user->update(['otp_code' => null, 'otp_expires_at' => null]);
+
+        return response()->json(['message' => 'Verifikasi berhasil. Silakan masuk ke brankas digital Anda.']);
     }
 
-    // 3. LOGIN (Mendukung Multi-Device)
-    public function login(Request $request)
-    {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|string',
-        ]);
-
-        $user = User::where('email', $request->email)->first();
-
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json(['message' => 'Email atau Password salah'], 401);
-        }
-
-        // Tolak kalau belum OTP
-        if ($user->otp_code !== null) {
-            return response()->json(['message' => 'Akun belum diverifikasi. Silakan masukkan kode OTP terlebih dahulu.'], 403);
-        }
-
-        // Bikin token baru tanpa menghapus token lama (Bisa login di HP & Laptop bersamaan)
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        return response()->json([
-            'message' => 'Login berhasil',
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-            'user' => $user
-        ]);
-    }
-
-    // 4. SETUP BRANKAS AWAL (Ubah status jadi Active)
-    // 4. SETUP BRANKAS AWAL (Simpan Data + Ubah status jadi Active)
-    public function setup(Request $request)
-    {
-        $request->validate([
-            'accounts' => 'required|array',
-            'categories' => 'required|array',
-        ]);
-
-        $user = $request->user();
-
-        // Pakai Transaksi Database biar aman (Kalau error 1, batal semua)
-        DB::beginTransaction();
-
-        try {
-            // 1. Looping dan Simpan Data Dompet (Accounts)
-            foreach ($request->accounts as $acc) {
-                FinancialAccount::create([
-                    'user_id' => $user->id,
-                    'name'    => $acc['name'],
-                    'type'    => $acc['type'],
-                    'balance' => $acc['balance'],
-                ]);
-            }
-
-            // 2. Looping dan Simpan Data Kategori
-            foreach ($request->categories as $cat) {
-                Category::create([
-                    'user_id' => $user->id,
-                    'name'    => $cat['name'],
-                    'type'    => $cat['type'],
-                ]);
-            }
-
-            // 3. Ubah status user agar tidak terjebak di halaman Setup lagi
-            $user->status = 'active';
-            $user->save();
-
-            // Selesai! Simpan semua perubahan ke database secara permanen
-            DB::commit();
-
-            return response()->json([
-                'message' => 'Setup berhasil! Data brankas telah disimpan dan akun sudah aktif.',
-                'user'    => $user
-            ], 200);
-
-        } catch (\Exception $e) {
-            // Kalau ada error (misal nama kolom salah), batalkan semua dan kasih tau errornya
-            DB::rollBack();
-            return response()->json([
-                'message' => 'Gagal menyimpan data Setup: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    // 5. LUPA PASSWORD (Kirim Link)
-    public function forgotPassword(Request $request)
+    public function resendOtp(Request $request)
     {
         $request->validate(['email' => 'required|email']);
         $user = User::where('email', $request->email)->first();
 
-        if (!$user) {
-            return response()->json(['message' => 'Jika email terdaftar, link reset telah dikirim!'], 200);
+        if (!$user) return response()->json(['message' => 'Alamat email tidak ditemukan.'], 404);
+        if ($user->status === 'active') return response()->json(['message' => 'Akun Anda sudah aktif. Silakan masuk.'], 400);
+
+        if ($cooldownMsg = $this->checkCooldown($user)) {
+            return response()->json(['message' => $cooldownMsg], 429);
         }
+
+        $otp = rand(100000, 999999);
+        $user->update([
+            'otp_code' => (string) $otp,
+            'otp_expires_at' => now()->addMinutes(10)
+        ]);
+
+        Mail::send('emails.otp', ['otp' => $otp, 'user' => $user], function ($msg) use ($user) {
+            $msg->to($user->email)->subject('Kode Verifikasi Baru - Midnight Finance');
+        });
+
+        return response()->json(['message' => 'Kode verifikasi baru telah dikirimkan ke email Anda.']);
+    }
+
+    public function login(Request $request)
+    {
+        $request->validate(['email' => 'required|email', 'password' => 'required']);
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) return response()->json(['message' => 'Alamat email tidak ditemukan. Silakan buat akun terlebih dahulu.'], 404);
+        if (!Hash::check($request->password, $user->password)) return response()->json(['message' => 'Kata sandi yang Anda masukkan salah.'], 401);
+        if ($user->otp_code) return response()->json(['message' => 'Akun belum diverifikasi. Silakan verifikasi email Anda terlebih dahulu.', 'need_otp' => true], 403);
+
+        return response()->json([
+            'message' => 'Akses diberikan. Membuka brankas digital Anda...',
+            'access_token' => $user->createToken('auth_token')->plainTextToken,
+            'user' => $user
+        ]);
+    }
+
+    public function setup(Request $request)
+    {
+        $user = $request->user();
+        if ($user->status === 'active') return response()->json(['message' => 'Pengaturan awal telah dilakukan sebelumnya.'], 400);
+
+        $request->validate(['accounts' => 'required|array', 'categories' => 'required|array']);
+
+        DB::beginTransaction();
+        try {
+            foreach ($request->accounts as $acc) FinancialAccount::create(['user_id' => $user->id] + $acc);
+            foreach ($request->categories as $cat) Category::create(['user_id' => $user->id] + $cat);
+
+            $user->update(['status' => 'active']);
+            DB::commit();
+            return response()->json(['message' => 'Pengaturan berhasil. Akun Anda kini aktif.', 'user' => $user], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Gagal menyimpan pengaturan: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function forgotPassword(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
+        $user = User::where('email', $request->email)->first();
+        if (!$user) return response()->json(['message' => 'Jika email terdaftar, tautan pengaturan ulang telah dikirimkan.'], 200);
 
         $token = Str::random(64);
         DB::table('password_reset_tokens')->updateOrInsert(
             ['email' => $request->email],
-            ['email' => $request->email, 'token' => $token, 'created_at' => Carbon::now()]
+            ['email' => $request->email, 'token' => $token, 'created_at' => now()]
         );
 
-        $resetUrl = env('FRONTEND_URL', 'http://localhost:5173') . '/reset-password?token=' . $token . '&email=' . urlencode($request->email);
-
-        Mail::send([], [], function ($message) use ($request, $resetUrl) {
-            $message->to($request->email)
-                ->subject('Reset Kata Sandi - Midnight Finance')
-                ->html("<h2>Halo Sultan!</h2><p>Klik link ini untuk sandi baru: <a href='{$resetUrl}'>Atur Ulang Sandi</a></p>");
+        $resetUrl = env('FRONTEND_URL', 'http://localhost:5173') . "/reset-password?token=$token&email=" . urlencode($request->email);
+        Mail::send('emails.reset', ['resetUrl' => $resetUrl, 'user' => $user], function ($msg) use ($request) {
+            $msg->to($request->email)->subject('Permintaan Atur Ulang Kata Sandi - Midnight Finance');
         });
 
-        return response()->json(['message' => 'Link atur ulang kata sandi telah dikirim ke email Anda!'], 200);
+        return response()->json(['message' => 'Tautan untuk mengatur ulang kata sandi telah dikirimkan ke email Anda.']);
     }
 
-    // 6. GANTI PASSWORD + GLOBAL KILL SWITCH
     public function resetPassword(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
-            'token' => 'required',
-            'password' => 'required|min:8|confirmed',
+            'email' => 'required|email', 'token' => 'required',
+            'password' => ['required', 'confirmed', Password::min(8)->letters()->mixedCase()->numbers()->symbols()->uncompromised()]
         ]);
 
-        $resetRequest = DB::table('password_reset_tokens')
-            ->where('email', $request->email)
-            ->where('token', $request->token)
-            ->first();
-
-        if (!$resetRequest || now()->diffInMinutes(\Carbon\Carbon::parse($resetRequest->created_at)) > 10) {
-            return response()->json(['message' => 'Token tidak valid atau sudah kadaluarsa.'], 400);
+        $reset = DB::table('password_reset_tokens')->where('email', $request->email)->where('token', $request->token)->first();
+        if (!$reset || now()->diffInMinutes(Carbon::parse($reset->created_at)) > 10) {
+            return response()->json(['message' => 'Tautan tidak valid atau telah usang.'], 400);
         }
 
         $user = User::where('email', $request->email)->first();
-        if (!$user) return response()->json(['message' => 'Pengguna tidak ditemukan!'], 404);
+        if (!$user) return response()->json(['message' => 'Pengguna tidak ditemukan.'], 404);
 
-        $user->password = Hash::make($request->password);
-        $user->save();
-
-        // 🚨 GLOBAL KILL SWITCH: Hapus semua token di semua perangkat!
+        $user->update(['password' => Hash::make($request->password)]);
         $user->tokens()->delete();
         DB::table('password_reset_tokens')->where('email', $request->email)->delete();
 
-        return response()->json(['message' => 'Kata sandi diubah! Semua perangkat telah dilogout.'], 200);
+        return response()->json(['message' => 'Kata sandi berhasil diubah. Seluruh sesi perangkat telah diakhiri demi keamanan.']);
     }
 
-    // 7. LOGOUT (Satu Perangkat)
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
-        return response()->json(['message' => 'Logout berhasil']);
+        return response()->json(['message' => 'Sesi Anda telah diakhiri dengan aman.']);
     }
 }

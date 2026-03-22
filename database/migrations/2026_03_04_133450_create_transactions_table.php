@@ -18,7 +18,8 @@ return new class extends Migration
 
             // Kolom Data
             $table->decimal('amount', 15, 2);
-            $table->enum('type', ['income', 'expense']);
+            // Pastikan Enum-nya ada 3 pilihan: income, expense, transfer
+            $table->enum('type', ['income', 'expense', 'transfer']);
             $table->date('date');
             $table->text('description')->nullable();
 

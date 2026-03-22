@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use App\Models\Saving; // 👈 PENTING: Tambahkan ini untuk memanggil tabel Tabungan
 
 class DashboardController extends Controller
 {
@@ -110,9 +111,13 @@ class DashboardController extends Controller
                 ];
             });
 
+        // 💡 5. TAHAP BARU: AMBIL DATA TABUNGAN (SAVINGS)
+        $savings = Saving::where('user_id', $user->id)->get();
+
         return response()->json([
-            'line_chart' => $chartData->values(), // values() buat balikin ke format array biasa [0,1,2...]
-            'pie_chart' => $pieChart
+            'line_chart' => $chartData->values(),
+            'pie_chart' => $pieChart,
+            'savings' => $savings // 👈 Data langsung dilempar ke Frontend!
         ]);
     }
 }

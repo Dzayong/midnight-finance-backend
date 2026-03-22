@@ -47,7 +47,9 @@ return [
     |
     */
 
-    'expiration' => null,
+    'expiration' => 1440, // 24 jam (1 hari) masa berlaku token untuk keamanan optimal
+
+     /*
 
     /*
     |--------------------------------------------------------------------------

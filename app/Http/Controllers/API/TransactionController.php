@@ -4,100 +4,160 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Transaction;
 use App\Models\FinancialAccount;
 use Illuminate\Support\Facades\DB;
+use Exception;
 
 class TransactionController extends Controller
 {
-    // 1. TAMPILKAN DATA (DENGAN FILTER SULTAN)
+    // 1. TAMPILKAN DAFTAR TRANSAKSI (LENGKAP DENGAN FILTER DARI FRONTEND)
     public function index(Request $request)
     {
-        $query = $request->user()->transactions()->with(['category:id,name', 'financialAccount:id,name']);
+        $user = $request->user();
+        $query = Transaction::with(['category', 'financialAccount'])->where('user_id', $user->id);
 
-        // Filter Rentang Tanggal
-        if ($request->start_date && $request->end_date) {
-            $query->whereBetween('date', [$request->start_date, $request->end_date]);
+        // Filter berdasarkan tanggal
+        if ($request->filled('start_date')) {
+            $query->where('date', '>=', $request->start_date);
+        }
+        if ($request->filled('end_date')) {
+            $query->where('date', '<=', $request->end_date);
+        }
+        // Filter berdasarkan Dompet
+        if ($request->filled('financial_account_id')) {
+            $query->where('financial_account_id', $request->financial_account_id);
+        }
+        // Filter berdasarkan Kategori
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+        // Filter berdasarkan Tipe (Income/Expense/Transfer)
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
         }
 
-        // Filter Dompet, Kategori, & Tipe
-        if ($request->financial_account_id) $query->where('financial_account_id', $request->financial_account_id);
-        if ($request->category_id) $query->where('category_id', $request->category_id);
-        if ($request->type) $query->where('type', $request->type);
+        // Sorting (Terbaru, Terbesar, Terkecil)
+        $sortBy = $request->input('sort_by', 'date');
+        $sortOrder = $request->input('sort_order', 'desc');
+        $query->orderBy($sortBy, $sortOrder);
 
-        // Sortir (Bawaan: Terbaru)
-        $query->orderBy($request->sort_by ?? 'date', $request->sort_order ?? 'desc');
+        $transactions = $query->get();
 
-        return response()->json(['status' => 'success', 'data' => $query->get()]);
+        return response()->json(['data' => $transactions], 200);
     }
 
-    // 2. SIMPAN TRANSAKSI BARU (POTONG/TAMBAH SALDO)
+    // 2. CATAT TRANSAKSI BARU & POTONG/TAMBAH SALDO
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'category_id'          => 'required|exists:categories,id',
             'financial_account_id' => 'required|exists:financial_accounts,id',
-            'amount'               => 'required|numeric|min:1',
-            'type'                 => 'required|in:income,expense',
-            'date'                 => 'required|date',
-            'description'          => 'nullable|string|max:255'
+            'category_id' => 'required|exists:categories,id',
+            'amount' => 'required|numeric|min:1',
+            'type' => 'required|in:income,expense',
+            'date' => 'required|date',
+            'description' => 'nullable|string'
         ]);
 
-        return DB::transaction(function () use ($validated, $request) {
-            $transaction = $request->user()->transactions()->create($validated);
-            $account = FinancialAccount::lockForUpdate()->findOrFail($validated['financial_account_id']);
+        $user = $request->user();
 
-            $validated['type'] === 'expense' ? $account->balance -= $validated['amount'] : $account->balance += $validated['amount'];
+        DB::beginTransaction();
+        try {
+            $account = FinancialAccount::where('id', $validated['financial_account_id'])
+                ->where('user_id', $user->id)
+                ->firstOrFail();
+
+            // Sesuaikan Saldo
+            if ($validated['type'] === 'income') {
+                $account->balance += $validated['amount'];
+            } else {
+                $account->balance -= $validated['amount'];
+            }
             $account->save();
 
+            // Catat Histori
+            $transaction = $user->transactions()->create($validated);
+
+            DB::commit();
             return response()->json($transaction->load(['category', 'financialAccount']), 201);
-        });
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Gagal mencatat transaksi: ' . $e->getMessage()], 500);
+        }
     }
 
-    // 3. UPDATE TRANSAKSI (ADJUST SALDO OTOMATIS)
+    // 3. EDIT TRANSAKSI (KEMBALIKAN SALDO LAMA, TERAPKAN SALDO BARU)
     public function update(Request $request, $id)
     {
         $validated = $request->validate([
-            'category_id'          => 'required|exists:categories,id',
             'financial_account_id' => 'required|exists:financial_accounts,id',
-            'amount'               => 'required|numeric|min:1',
-            'type'                 => 'required|in:income,expense',
-            'date'                 => 'required|date',
-            'description'          => 'nullable|string|max:255'
+            'category_id' => 'required|exists:categories,id',
+            'amount' => 'required|numeric|min:1',
+            'type' => 'required|in:income,expense',
+            'date' => 'required|date',
+            'description' => 'nullable|string'
         ]);
 
-        return DB::transaction(function () use ($validated, $request, $id) {
-            $transaction = $request->user()->transactions()->findOrFail($id);
+        $user = $request->user();
 
-            // --- A. KEMBALIKAN SALDO LAMA ---
-            $oldAccount = FinancialAccount::lockForUpdate()->findOrFail($transaction->financial_account_id);
-            $transaction->type === 'expense' ? $oldAccount->balance += $transaction->amount : $oldAccount->balance -= $transaction->amount;
+        DB::beginTransaction();
+        try {
+            $transaction = Transaction::where('id', $id)->where('user_id', $user->id)->firstOrFail();
+            $oldAccount = FinancialAccount::findOrFail($transaction->financial_account_id);
+
+            // FASE 1: REVERT (KEMBALIKAN SALDO LAMA)
+            if ($transaction->type === 'income') {
+                $oldAccount->balance -= $transaction->amount; // Batalin masuk
+            } else {
+                $oldAccount->balance += $transaction->amount; // Batalin keluar
+            }
             $oldAccount->save();
 
-            // --- B. UPDATE DATA TRANSAKSI ---
-            $transaction->update($validated);
-
-            // --- C. POTONG SALDO BARU (Mungkin dompetnya diganti saat edit) ---
-            $newAccount = FinancialAccount::lockForUpdate()->findOrFail($validated['financial_account_id']);
-            $validated['type'] === 'expense' ? $newAccount->balance -= $validated['amount'] : $newAccount->balance += $validated['amount'];
+            // FASE 2: APPLY (TERAPKAN KE SALDO BARU)
+            $newAccount = FinancialAccount::findOrFail($validated['financial_account_id']);
+            if ($validated['type'] === 'income') {
+                $newAccount->balance += $validated['amount'];
+            } else {
+                $newAccount->balance -= $validated['amount'];
+            }
             $newAccount->save();
 
-            return response()->json($transaction->load(['category', 'financialAccount']));
-        });
+            // FASE 3: UPDATE HISTORI
+            $transaction->update($validated);
+
+            DB::commit();
+            return response()->json($transaction->load(['category', 'financialAccount']), 200);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Gagal mengubah transaksi: ' . $e->getMessage()], 500);
+        }
     }
 
-    // 4. HAPUS TRANSAKSI (SALDO BALIK)
+    // 4. HAPUS TRANSAKSI & KEMBALIKAN SALDO
     public function destroy(Request $request, $id)
     {
-        return DB::transaction(function () use ($request, $id) {
-            $transaction = $request->user()->transactions()->findOrFail($id);
-            $account = FinancialAccount::lockForUpdate()->findOrFail($transaction->financial_account_id);
+        $user = $request->user();
 
-            // Batalkan efek saldo
-            $transaction->type === 'expense' ? $account->balance += $transaction->amount : $account->balance -= $transaction->amount;
+        DB::beginTransaction();
+        try {
+            $transaction = Transaction::where('id', $id)->where('user_id', $user->id)->firstOrFail();
+            $account = FinancialAccount::findOrFail($transaction->financial_account_id);
+
+            // REVERT SALDO
+            if ($transaction->type === 'income') {
+                $account->balance -= $transaction->amount; // Batalin masuk
+            } else {
+                $account->balance += $transaction->amount; // Batalin keluar
+            }
             $account->save();
+
             $transaction->delete();
 
-            return response()->json(['message' => 'Transaksi dihapus & Saldo disesuaikan.']);
-        });
+            DB::commit();
+            return response()->json(['message' => 'Transaksi berhasil dihapus dan saldo dikembalikan'], 200);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Gagal menghapus transaksi: ' . $e->getMessage()], 500);
+        }
     }
 }
