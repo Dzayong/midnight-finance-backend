@@ -1,0 +1,12 @@
+{
+  "test_id": "UI-TRX-03",
+  "category": "UI Screenshot",
+  "page": "Transaksi — Modal Catat Aliran Dana",
+  "state": "Validasi Error — Form Kosong Submit",
+  "url": "http://localhost:5175/transactions",
+  "timestamp": "2026-05-27",
+  "trigger": "Submit modal form tanpa mengisi field wajib",
+  "error_displayed": "Harap isi bidang ini. (browser native validation tooltip)",
+  "result": "PASS",
+  "notes": "Browser native HTML5 validation mencegah submit form kosong. Field wajib (required) bekerja dengan benar."
+}

@@ -1,0 +1,22 @@
+{
+  "test_id": "UI-TRX-02",
+  "category": "UI Screenshot",
+  "page": "Transaksi — Modal Catat Aliran Dana",
+  "state": "Modal Form Kosong",
+  "url": "http://localhost:5175/transactions",
+  "timestamp": "2026-05-27",
+  "trigger": "Klik tombol + CATAT TRANSAKSI atau + CATAT ALIRAN DANA",
+  "ui_elements_visible": [
+    "Modal overlay",
+    "Judul: Catat Aliran Dana",
+    "Dropdown: Tipe (INCOME/EXPENSE)",
+    "Input: Jumlah (amount)",
+    "Dropdown: Kategori",
+    "Dropdown: Akun",
+    "Input: Deskripsi/Catatan",
+    "Button: Simpan",
+    "Button: Batal/Close"
+  ],
+  "result": "PASS",
+  "notes": "Modal form untuk mencatat transaksi baru. Form kosong saat dibuka pertama kali."
+}

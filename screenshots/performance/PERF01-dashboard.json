@@ -1,0 +1,19 @@
+{
+  "test_id": "PERF-01",
+  "category": "Performance Testing",
+  "endpoint": "GET /api/v1/dashboard",
+  "timestamp": "2026-05-27",
+  "request": {
+    "method": "GET",
+    "url": "http://localhost:8000/api/v1/dashboard",
+    "headers": { "Authorization": "Bearer [token]" }
+  },
+  "response": {
+    "status": 200,
+    "response_time_ms": 711,
+    "response_size_bytes": 6436
+  },
+  "threshold_ms": 2000,
+  "result": "PASS",
+  "notes": "Response time 711ms — jauh di bawah threshold 2000ms. Data dashboard mencakup saldo total, daftar akun, dan transaksi terkini."
+}

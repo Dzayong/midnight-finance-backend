@@ -1,0 +1,19 @@
+{
+  "test_id": "PERF-04",
+  "category": "Performance Testing",
+  "endpoint": "POST /api/v1/auth/login",
+  "timestamp": "2026-05-27",
+  "request": {
+    "method": "POST",
+    "url": "http://localhost:8000/api/v1/auth/login",
+    "headers": { "Content-Type": "application/json" },
+    "body": { "email": "admin@midnight.com", "password": "[valid]" }
+  },
+  "response": {
+    "status": 200,
+    "response_time_ms": 1082
+  },
+  "threshold_ms": 2000,
+  "result": "PASS",
+  "notes": "Login memakan waktu 1082ms — lebih lambat dari endpoint lain karena proses bcrypt password hashing verification. Masih di bawah threshold 2000ms. Wajar untuk proses autentikasi."
+}

@@ -1,0 +1,17 @@
+{
+  "test_id": "UI-SETUP-03",
+  "category": "UI Screenshot",
+  "page": "Inisialisasi Brankas — Validasi Error",
+  "state": "Modal DATA BELUM LENGKAP",
+  "url": "http://localhost:5175/setup",
+  "timestamp": "2026-05-27",
+  "trigger": "Klik SELESAIKAN SETUP saat AKUN 2 bank belum dipilih",
+  "modal_content": {
+    "icon": "! (warning circle)",
+    "title": "DATA BELUM LENGKAP",
+    "message": "Harap lengkapi semua nama dompet dan nama kategori sebelum melanjutkan, Bang!",
+    "button": "OK"
+  },
+  "result": "PASS",
+  "notes": "Frontend validation modal muncul saat data setup belum lengkap. Pesan ramah dengan kata 'Bang' menunjukkan tone app yang personal. Validasi mencegah submit data tidak lengkap ke backend."
+}

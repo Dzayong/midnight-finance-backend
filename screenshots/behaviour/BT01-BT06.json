@@ -1,0 +1,65 @@
+{
+  "test_suite": "Behaviour Testing (BDD)",
+  "category": "User Journey End-to-End",
+  "timestamp": "2026-05-27",
+  "framework": "BDD — Given/When/Then",
+  "total_scenarios": 6,
+  "passed": 6,
+  "failed": 0,
+  "scenarios": [
+    {
+      "id": "BT-01",
+      "title": "Register akun baru berhasil",
+      "given": "User belum memiliki akun",
+      "when": "User mengisi form register dengan data valid (nama, email baru, password kuat)",
+      "then": "Sistem membuat akun, mengirim OTP ke email, menampilkan pesan sukses",
+      "result": "PASS",
+      "evidence": "HTTP 201, message: 'registration successful'"
+    },
+    {
+      "id": "BT-02",
+      "title": "Verifikasi OTP berhasil",
+      "given": "User sudah register dan mendapatkan OTP di email",
+      "when": "User memasukkan OTP yang benar di halaman verifikasi",
+      "then": "Akun diaktifkan, user diarahkan ke login",
+      "result": "PASS",
+      "evidence": "HTTP 200, message: 'OTP verified', redirect ke /login"
+    },
+    {
+      "id": "BT-03",
+      "title": "Login berhasil dan masuk dashboard",
+      "given": "User memiliki akun terverifikasi",
+      "when": "User login dengan email dan password yang benar",
+      "then": "User mendapatkan token Sanctum dan diarahkan ke dashboard",
+      "result": "PASS",
+      "evidence": "HTTP 200, token diterima, dashboard dimuat"
+    },
+    {
+      "id": "BT-04",
+      "title": "Setup brankas pertama kali",
+      "given": "User login pertama kali (belum setup)",
+      "when": "User mengisi akun keuangan (step 1) dan kategori (step 2) lalu klik SELESAIKAN SETUP",
+      "then": "Data akun dan kategori disimpan, user masuk ke dashboard utama",
+      "result": "PASS",
+      "evidence": "HTTP 200 dari POST /api/v1/auth/setup, redirect ke /dashboard"
+    },
+    {
+      "id": "BT-05",
+      "title": "Catat transaksi income berhasil",
+      "given": "User sudah login dan memiliki akun + kategori",
+      "when": "User mengisi modal 'Catat Aliran Dana' dengan tipe INCOME, jumlah valid, kategori, akun",
+      "then": "Transaksi tersimpan, saldo akun bertambah, muncul di riwayat transaksi",
+      "result": "PASS",
+      "evidence": "HTTP 201 dari POST /api/v1/transactions, saldo akun updated"
+    },
+    {
+      "id": "BT-06",
+      "title": "Catat transaksi expense berhasil",
+      "given": "User sudah login dan memiliki saldo",
+      "when": "User mencatat transaksi EXPENSE dengan jumlah valid",
+      "then": "Transaksi tersimpan, saldo akun berkurang, muncul di riwayat",
+      "result": "PASS",
+      "evidence": "HTTP 201 dari POST /api/v1/transactions, saldo akun decreased"
+    }
+  ]
+}

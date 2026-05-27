@@ -1,0 +1,29 @@
+{
+  "test_id": "RT-01",
+  "category": "Robustness Testing",
+  "type": "SQL Injection",
+  "endpoint": "POST /api/v1/auth/login",
+  "timestamp": "2026-05-27",
+  "request": {
+    "method": "POST",
+    "url": "http://localhost:8000/api/v1/auth/login",
+    "headers": { "Content-Type": "application/json", "Accept": "application/json" },
+    "body": {
+      "email": "' OR '1'='1",
+      "password": "anything"
+    }
+  },
+  "response": {
+    "status": 422,
+    "body": {
+      "message": "The email field must be a valid email address.",
+      "errors": {
+        "email": ["The email field must be a valid email address."]
+      }
+    }
+  },
+  "expected_status": 422,
+  "result": "PASS",
+  "security_analysis": "SQL injection pada field email ditolak oleh Laravel email validation rule sebelum mencapai database. Eloquent ORM menggunakan parameterized queries sehingga tidak rentan SQL injection.",
+  "threat_level": "MITIGATED"
+}

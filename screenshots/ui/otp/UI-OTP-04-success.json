@@ -1,0 +1,21 @@
+{
+  "test_id": "UI-OTP-04",
+  "category": "UI Screenshot",
+  "page": "OTP Verification / Verifikasi Keamanan",
+  "state": "Verifikasi OTP Berhasil",
+  "url": "http://localhost:5175/otp-verification",
+  "timestamp": "2026-05-27",
+  "test_input": {
+    "email": "qatest2026@test.com",
+    "otp": "914275"
+  },
+  "api_response": {
+    "status": 200,
+    "message": "OTP verified"
+  },
+  "success_message_displayed": "Verifikasi berhasil. Silakan masuk ke brankas digital Anda.",
+  "success_style": "Banner hijau di atas input OTP",
+  "redirect_to": "/login",
+  "result": "PASS",
+  "notes": "OTP benar (914275) berhasil memverifikasi akun. Setelah verifikasi user diarahkan ke login untuk masuk."
+}

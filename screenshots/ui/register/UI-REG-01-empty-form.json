@@ -1,0 +1,23 @@
+{
+  "test_id": "UI-REG-01",
+  "category": "UI Screenshot",
+  "page": "Register / Pendaftaran",
+  "state": "Form Kosong",
+  "url": "http://localhost:5175/register",
+  "timestamp": "2026-05-27",
+  "description": "Halaman pendaftaran akun baru. Menampilkan form dengan 4 field dan password strength checklist.",
+  "ui_elements_visible": [
+    "Logo Midnight Finance (diamond icon)",
+    "Judul PENDAFTARAN",
+    "Subtitle: LENGKAPI IDENTITAS UNTUK INISIASI BRANKAS",
+    "Input: Nama Lengkap (dengan icon user)",
+    "Input: Alamat Email (dengan icon email)",
+    "Input: Kata Sandi (dengan toggle show/hide + generate random icon)",
+    "Password strength checklist: MINIMAL 8 KARAKTER, HURUF BESAR & KECIL, MEMUAT ANGKA, KARAKTER SPESIAL",
+    "Input: Konfirmasi Kata Sandi",
+    "Button: PENDAFTARAN (orange/gold)",
+    "Link: KLIEN TERDAFTAR? Masuk →"
+  ],
+  "result": "PASS",
+  "notes": "UI form registrasi lengkap dengan password strength indicator real-time."
+}

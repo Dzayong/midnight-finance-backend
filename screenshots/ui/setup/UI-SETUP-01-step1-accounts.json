@@ -1,0 +1,22 @@
+{
+  "test_id": "UI-SETUP-01",
+  "category": "UI Screenshot",
+  "page": "Inisialisasi Brankas — Langkah 1",
+  "state": "Setup Akun Keuangan",
+  "url": "http://localhost:5175/setup",
+  "timestamp": "2026-05-27",
+  "description": "Halaman setup awal untuk akun baru. Langkah 1: mendaftarkan sumber dana (rekening/dompet).",
+  "ui_elements_visible": [
+    "Logo wallet/briefcase icon",
+    "Judul: INISIALISASI BRANKAS",
+    "Subtitle: LANGKAH 1: DAFTARKAN SUMBER DANAMUMU",
+    "Progress indicator: 2 dots (step 1 aktif)",
+    "AKUN 1: type CASH, nama CASH, saldo Rp 0",
+    "AKUN 2: type BANK, dropdown pilih bank, saldo",
+    "Link: + TAMBAH AKUN BARU",
+    "Button: LANJUTKAN → (orange/gold)"
+  ],
+  "dropdown_bank_options": "Lengkap, 90+ bank Indonesia tersedia",
+  "result": "PASS",
+  "notes": "Setup step 1 muncul otomatis setelah login pertama kali. Mendukung multiple akun dengan tipe CASH atau BANK."
+}

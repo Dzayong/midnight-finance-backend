@@ -1,0 +1,12 @@
+{
+  "test_id": "UI-TRX-01",
+  "category": "UI Screenshot",
+  "page": "Transaksi / Riwayat Portofolio",
+  "state": "Daftar Transaksi Loaded",
+  "url": "http://localhost:5175/transactions",
+  "timestamp": "2026-05-27",
+  "user": "Admin Midnight (admin@midnight.com)",
+  "description": "Halaman transaksi menampilkan riwayat semua transaksi income/expense.",
+  "result": "PASS",
+  "notes": "Tabel transaksi tampil dengan pagination, filter, dan data lengkap."
+}

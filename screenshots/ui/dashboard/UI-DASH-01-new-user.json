@@ -1,0 +1,27 @@
+{
+  "test_id": "UI-DASH-01",
+  "category": "UI Screenshot",
+  "page": "Dashboard — Akun Baru",
+  "state": "Dashboard dengan Empty State (belum ada transaksi)",
+  "url": "http://localhost:5175/dashboard",
+  "timestamp": "2026-05-27",
+  "user": "Test User (qatest2026@test.com)",
+  "description": "Dashboard pertama kali untuk akun yang baru selesai setup. Menampilkan saldo awal dari setup.",
+  "ui_elements_visible": [
+    "Sidebar navigasi: Dashboard, Transaksi, Portofolio Keuangan, Analisis, Pengaturan",
+    "MIDNIGHT PRIVATE WEALTH logo",
+    "PROFIL: TEST USER header",
+    "Tab: TOTAL SALDO | MEI 2026",
+    "KEKAYAAN BERSIH GABUNGAN: Rp 1.000.000",
+    "CASH: Rp 0",
+    "PT BANK CENTRAL ASIA (BCA): Rp 1.000.000",
+    "Button: + TAMBAH AKUN",
+    "Section: AKTIVITAS TERKINI",
+    "Empty state: BELUM ADA SEJARAH TRANSAKSI TERDETEKSI",
+    "Button: + CATAT TRANSAKSI",
+    "User info di footer sidebar: Test User, qatest2026@test.com",
+    "Link: SIGN OUT"
+  ],
+  "result": "PASS",
+  "notes": "Dashboard tampil dengan benar setelah setup selesai. Saldo BCA Rp 1.000.000 sesuai dengan yang diisi saat setup. Empty state 'BELUM ADA SEJARAH TRANSAKSI' ditampilkan dengan benar karena akun baru."
+}

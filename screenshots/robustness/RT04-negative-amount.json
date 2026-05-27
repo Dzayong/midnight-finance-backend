@@ -1,0 +1,36 @@
+{
+  "test_id": "RT-04",
+  "category": "Robustness Testing",
+  "type": "Negative Amount Input",
+  "endpoint": "POST /api/v1/transactions",
+  "timestamp": "2026-05-27",
+  "request": {
+    "method": "POST",
+    "url": "http://localhost:8000/api/v1/transactions",
+    "headers": {
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+      "Authorization": "Bearer [token]"
+    },
+    "body": {
+      "type": "expense",
+      "amount": -1000,
+      "category_id": 1,
+      "account_id": 1,
+      "description": "test negative"
+    }
+  },
+  "response": {
+    "status": 422,
+    "body": {
+      "message": "The amount field must be at least 1.",
+      "errors": {
+        "amount": ["The amount field must be at least 1."]
+      }
+    }
+  },
+  "expected_status": 422,
+  "result": "PASS",
+  "security_analysis": "Validasi min:1 pada amount mencegah nilai negatif. Transaksi dengan jumlah negatif tidak bisa dibuat melalui API.",
+  "threat_level": "MITIGATED"
+}

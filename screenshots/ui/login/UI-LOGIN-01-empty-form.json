@@ -1,0 +1,21 @@
+{
+  "test_id": "UI-LOGIN-01",
+  "category": "UI Screenshot",
+  "page": "Login",
+  "state": "Empty Form",
+  "url": "http://localhost:5175/login",
+  "timestamp": "2026-05-27",
+  "description": "Halaman login awal — form kosong dengan placeholder 'Alamat Email Terdaftar' dan 'Kata Sandi Keamanan'. Terdapat link 'PENGATURAN ULANG SANDI' dan link ke halaman Pendaftaran.",
+  "ui_elements_visible": [
+    "Logo Midnight Finance (diamond icon)",
+    "Judul MASUK",
+    "Subtitle: MASUKKAN KREDENSIAL BRANKAS DIGITAL ANDA",
+    "Input: Alamat Email Terdaftar (dengan icon email)",
+    "Input: Kata Sandi Keamanan (dengan icon kunci + toggle show/hide)",
+    "Link: PENGATURAN ULANG SANDI",
+    "Button: MASUK (orange/gold)",
+    "Link: KLIEN BARU? Pendaftaran →"
+  ],
+  "result": "PASS",
+  "notes": "UI bersih, form kosong, semua elemen tampil dengan benar"
+}

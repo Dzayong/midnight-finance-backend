@@ -1,0 +1,19 @@
+{
+  "test_id": "PERF-02",
+  "category": "Performance Testing",
+  "endpoint": "GET /api/v1/analytics",
+  "timestamp": "2026-05-27",
+  "request": {
+    "method": "GET",
+    "url": "http://localhost:8000/api/v1/analytics",
+    "headers": { "Authorization": "Bearer [token]" }
+  },
+  "response": {
+    "status": 200,
+    "response_time_ms": 685,
+    "response_size_bytes": 404
+  },
+  "threshold_ms": 2000,
+  "result": "PASS",
+  "notes": "Response time 685ms — di bawah threshold. Endpoint analytics mengembalikan data ringkasan keuangan."
+}

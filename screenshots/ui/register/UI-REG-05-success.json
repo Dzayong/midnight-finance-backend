@@ -1,0 +1,23 @@
+{
+  "test_id": "UI-REG-05",
+  "category": "UI Screenshot",
+  "page": "Register / Pendaftaran",
+  "state": "Registrasi Berhasil",
+  "url": "http://localhost:5175/register",
+  "timestamp": "2026-05-27",
+  "test_input": {
+    "name": "Test User",
+    "email": "qatest2026@test.com",
+    "password": "MidnightQA@2026!",
+    "password_confirmation": "MidnightQA@2026!"
+  },
+  "api_response": {
+    "status": 201,
+    "message": "registration successful, OTP sent"
+  },
+  "success_message_displayed": "Registrasi berhasil. Sistem sedang mengirimkan kode verifikasi ke email Anda.",
+  "success_style": "Banner hijau di atas form",
+  "redirect_to": "/otp-verification",
+  "result": "PASS",
+  "notes": "Registrasi akun baru berhasil dengan email yang belum terdaftar dan password memenuhi semua requirement."
+}

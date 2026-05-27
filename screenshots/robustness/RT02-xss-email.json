@@ -1,0 +1,29 @@
+{
+  "test_id": "RT-02",
+  "category": "Robustness Testing",
+  "type": "XSS (Cross-Site Scripting) via Email Field",
+  "endpoint": "POST /api/v1/auth/login",
+  "timestamp": "2026-05-27",
+  "request": {
+    "method": "POST",
+    "url": "http://localhost:8000/api/v1/auth/login",
+    "headers": { "Content-Type": "application/json", "Accept": "application/json" },
+    "body": {
+      "email": "<script>alert('xss')</script>@test.com",
+      "password": "anything"
+    }
+  },
+  "response": {
+    "status": 422,
+    "body": {
+      "message": "The email field must be a valid email address.",
+      "errors": {
+        "email": ["The email field must be a valid email address."]
+      }
+    }
+  },
+  "expected_status": 422,
+  "result": "PASS",
+  "security_analysis": "XSS payload pada field email ditolak oleh email validation rule. Script tag tidak dieksekusi. Laravel secara default melakukan output escaping pada semua response.",
+  "threat_level": "MITIGATED"
+}

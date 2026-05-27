@@ -1,0 +1,18 @@
+{
+  "test_id": "UI-OTP-03",
+  "category": "UI Screenshot",
+  "page": "OTP Verification / Verifikasi Keamanan",
+  "state": "OTP Salah → Redirect ke Login",
+  "url": "http://localhost:5175/otp-verification",
+  "timestamp": "2026-05-27",
+  "test_input": {
+    "otp": "000000"
+  },
+  "api_response": {
+    "status": 401,
+    "message": "invalid OTP"
+  },
+  "behaviour": "Setelah submit OTP salah, aplikasi redirect ke halaman Login",
+  "result": "PASS",
+  "notes": "OTP yang salah ditolak dan user dikembalikan ke login page. OTP yang dicoba: 000000 (tidak valid)."
+}

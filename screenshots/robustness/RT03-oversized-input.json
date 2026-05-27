@@ -1,0 +1,26 @@
+{
+  "test_id": "RT-03",
+  "category": "Robustness Testing",
+  "type": "Oversized Input (Buffer Overflow attempt)",
+  "endpoint": "POST /api/v1/auth/login",
+  "timestamp": "2026-05-27",
+  "request": {
+    "method": "POST",
+    "url": "http://localhost:8000/api/v1/auth/login",
+    "headers": { "Content-Type": "application/json", "Accept": "application/json" },
+    "body": {
+      "email": "AAAAAAAAAA[x10000]@test.com",
+      "password": "anything"
+    }
+  },
+  "response": {
+    "status": 404,
+    "body": {
+      "message": "email not found"
+    }
+  },
+  "expected_status": "non-500",
+  "result": "PASS",
+  "security_analysis": "Input sangat panjang tidak menyebabkan crash (HTTP 500). Server mengembalikan 404 email not found — artinya input diproses dengan aman. Tidak ada buffer overflow atau server error.",
+  "threat_level": "MITIGATED"
+}

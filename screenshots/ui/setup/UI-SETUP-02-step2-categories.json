@@ -1,0 +1,25 @@
+{
+  "test_id": "UI-SETUP-02",
+  "category": "UI Screenshot",
+  "page": "Inisialisasi Brankas — Langkah 2",
+  "state": "Setup Kategori Transaksi",
+  "url": "http://localhost:5175/setup",
+  "timestamp": "2026-05-27",
+  "description": "Langkah 2: user membuat kategori transaksi sendiri (income/expense categories).",
+  "ui_elements_visible": [
+    "Judul: INISIALISASI BRANKAS",
+    "Subtitle: LANGKAH 2: BUAT KATEGORI TRANSAKSIMU SENDIRI",
+    "Progress indicator: 2 dots (step 2 aktif)",
+    "Kategori 1: type KELUAR (expense), input nama",
+    "Kategori 2: type MASUK (income), input nama",
+    "Link: + TAMBAH KATEGORI BARU",
+    "Button: ← BACK",
+    "Button: ✓ SELESAIKAN SETUP (orange/gold)"
+  ],
+  "test_data_filled": {
+    "category_1": { "type": "KELUAR", "name": "Makan & Minum" },
+    "category_2": { "type": "MASUK", "name": "Gaji" }
+  },
+  "result": "PASS",
+  "notes": "User dapat membuat kategori custom untuk expense (KELUAR) dan income (MASUK)."
+}

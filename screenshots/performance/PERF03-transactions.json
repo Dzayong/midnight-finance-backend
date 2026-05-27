@@ -1,0 +1,19 @@
+{
+  "test_id": "PERF-03",
+  "category": "Performance Testing",
+  "endpoint": "GET /api/v1/transactions",
+  "timestamp": "2026-05-27",
+  "request": {
+    "method": "GET",
+    "url": "http://localhost:8000/api/v1/transactions",
+    "headers": { "Authorization": "Bearer [token]" }
+  },
+  "response": {
+    "status": 200,
+    "response_time_ms": 691,
+    "response_size_bytes": 7920
+  },
+  "threshold_ms": 2000,
+  "result": "PASS",
+  "notes": "Response time 691ms — di bawah threshold. Payload 7920 bytes berisi daftar semua transaksi user dengan data lengkap."
+}

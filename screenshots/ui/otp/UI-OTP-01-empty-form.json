@@ -1,0 +1,19 @@
+{
+  "test_id": "UI-OTP-01",
+  "category": "UI Screenshot",
+  "page": "OTP Verification / Verifikasi Keamanan",
+  "state": "Form OTP Kosong",
+  "url": "http://localhost:5175/otp-verification",
+  "timestamp": "2026-05-27",
+  "description": "Halaman verifikasi OTP yang muncul setelah registrasi berhasil atau login dengan akun belum diverifikasi.",
+  "ui_elements_visible": [
+    "Logo kunci (key icon) — berbeda dari login page",
+    "Judul: VERIFIKASI KEAMANAN",
+    "Subtitle: MASUKKAN SANDI SATU WAKTU DARI [EMAIL]",
+    "Input OTP: 6 titik placeholder",
+    "Button: VERIFIKASI OTP (orange/gold)",
+    "Link: ← KEMBALI KE OTORISASI!"
+  ],
+  "result": "PASS",
+  "notes": "OTP screen muncul setelah registrasi berhasil dengan email qatest2026@test.com"
+}

@@ -1,0 +1,20 @@
+{
+  "test_id": "UI-LOGIN-02",
+  "category": "UI Screenshot",
+  "page": "Login",
+  "state": "Error — Email Tidak Ditemukan",
+  "url": "http://localhost:5175/login",
+  "timestamp": "2026-05-27",
+  "test_input": {
+    "email": "notfound@example.com",
+    "password": "somepassword"
+  },
+  "api_response": {
+    "status": 404,
+    "message": "email not found"
+  },
+  "error_message_displayed": "Alamat email tidak ditemukan. Silakan buat akun terlebih dahulu.",
+  "error_style": "Banner merah di atas form",
+  "result": "PASS",
+  "notes": "Koresponden dengan WB-01 Path 1. Pesan error bahasa Indonesia yang jelas dan informatif."
+}

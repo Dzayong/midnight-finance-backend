@@ -1,0 +1,17 @@
+{
+  "test_id": "UI-DASH-02",
+  "category": "UI Screenshot",
+  "page": "Dashboard — Akun Admin dengan Data",
+  "state": "Dashboard Loaded dengan Transaksi",
+  "url": "http://localhost:5175/dashboard",
+  "timestamp": "2026-05-27",
+  "user": "Admin Midnight (admin@midnight.com)",
+  "description": "Dashboard akun admin yang sudah memiliki banyak data transaksi.",
+  "financial_data": {
+    "kekayaan_bersih": "Rp 3.008.301.000",
+    "recent_transactions": "Tampil di AKTIVITAS TERKINI"
+  },
+  "ui_state": "Loaded (setelah loading state MENYINKRONKAN BRANKAS...)",
+  "result": "PASS",
+  "notes": "Dashboard tampil dengan data lengkap: saldo total, daftar akun, dan riwayat transaksi terkini."
+}

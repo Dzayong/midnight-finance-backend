@@ -1,0 +1,36 @@
+{
+  "test_id": "RT-05",
+  "category": "Robustness Testing",
+  "type": "SQL Injection via Description Field",
+  "endpoint": "POST /api/v1/transactions",
+  "timestamp": "2026-05-27",
+  "request": {
+    "method": "POST",
+    "url": "http://localhost:8000/api/v1/transactions",
+    "headers": {
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+      "Authorization": "Bearer [token]"
+    },
+    "body": {
+      "type": "income",
+      "amount": 100000,
+      "category_id": 1,
+      "account_id": 1,
+      "description": "'; DROP TABLE transactions; --"
+    }
+  },
+  "response": {
+    "status": 201,
+    "body": {
+      "message": "Transaction created",
+      "data": {
+        "description": "'; DROP TABLE transactions; --"
+      }
+    }
+  },
+  "expected_status": 201,
+  "result": "PASS",
+  "security_analysis": "SQL injection payload pada field description DISIMPAN sebagai teks literal (bukan dieksekusi). Ini adalah CORRECT behavior — Eloquent ORM menggunakan parameterized queries yang mencegah eksekusi SQL dari input user. Payload tidak berbahaya.",
+  "threat_level": "NONE — Eloquent parameterized queries melindungi dari SQL injection"
+}

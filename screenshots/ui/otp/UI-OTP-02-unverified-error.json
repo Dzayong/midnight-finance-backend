@@ -1,0 +1,17 @@
+{
+  "test_id": "UI-OTP-02",
+  "category": "UI Screenshot",
+  "page": "OTP Verification / Verifikasi Keamanan",
+  "state": "Error — Akun Belum Diverifikasi",
+  "url": "http://localhost:5175/otp-verification",
+  "timestamp": "2026-05-27",
+  "trigger": "Login dengan akun yang belum diverifikasi OTP",
+  "api_response": {
+    "status": 403,
+    "message": "account not verified"
+  },
+  "error_message_displayed": "Akun belum diverifikasi. Silakan verifikasi email Anda terlebih dahulu.",
+  "error_style": "Banner merah di atas input OTP",
+  "result": "PASS",
+  "notes": "Koresponden dengan WB-01 Path 3. User yang belum verify diarahkan ke OTP screen dengan pesan informatif."
+}

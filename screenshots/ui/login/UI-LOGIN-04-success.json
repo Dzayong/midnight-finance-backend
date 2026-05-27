@@ -1,0 +1,21 @@
+{
+  "test_id": "UI-LOGIN-04",
+  "category": "UI Screenshot",
+  "page": "Login",
+  "state": "Login Berhasil",
+  "url": "http://localhost:5175/login",
+  "timestamp": "2026-05-27",
+  "test_input": {
+    "email": "admin@midnight.com",
+    "password": "[valid password]"
+  },
+  "api_response": {
+    "status": 200,
+    "message": "login successful"
+  },
+  "success_message_displayed": "Akses diberikan. Membuka brankas digital Anda...",
+  "success_style": "Banner hijau di atas form",
+  "redirect_to": "/dashboard",
+  "result": "PASS",
+  "notes": "Koresponden dengan WB-01 Path 4 (akun terverifikasi). Pesan sukses ditampilkan sebelum redirect ke dashboard."
+}

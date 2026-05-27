@@ -1,0 +1,22 @@
+{
+  "test_id": "UI-REG-04",
+  "category": "UI Screenshot",
+  "page": "Register / Pendaftaran",
+  "state": "Error — Email Sudah Terdaftar",
+  "url": "http://localhost:5175/register",
+  "timestamp": "2026-05-27",
+  "test_input": {
+    "name": "Test User",
+    "email": "admin@midnight.com",
+    "password": "MidnightQA@2026!",
+    "password_confirmation": "MidnightQA@2026!"
+  },
+  "api_response": {
+    "status": 422,
+    "error": "email already taken"
+  },
+  "error_message_displayed": "Alamat email sudah terdaftar. Silakan masuk ke akun Anda.",
+  "error_style": "Banner merah di atas form",
+  "result": "PASS",
+  "notes": "Validasi duplikasi email berjalan benar. Namun perlu dicatat: tidak ada rule 'unique' eksplisit di AuthController — ini mungkin ditangani oleh database constraint. Lihat temuan CW-02 (Formal Inspection)."
+}
